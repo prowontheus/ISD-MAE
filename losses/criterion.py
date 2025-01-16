@@ -13,8 +13,8 @@ import numpy as np
 #     return dice_score
 
 def dice_score(pred, target):
-    intersection = np.logical_and(pred, target).sum()  # 计算交集
-    union = pred.sum() + target.sum()  # 计算并集
+    intersection = np.logical_and(pred, target).sum()
+    union = pred.sum() + target.sum()
 
     dice_score = (2.0 * intersection) / (union + 1e-6)
 
@@ -34,7 +34,6 @@ class DiceLoss(nn.Module):
 
         dice_score = (2.0 * intersection + self.smooth) / (union + self.smooth)
 
-        # 计算Dice Loss
         dice_loss = 1.0 - dice_score
 
         return dice_loss

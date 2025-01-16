@@ -40,11 +40,11 @@ def read_tensorboard_log(log_file1, log_file2, log_file3):
     plt.title('Loss Curve on TotalSegmentator', fontsize=18)
     plt.legend(fontsize=18)
     plt.grid(True)
-    plt.savefig('/home/jerry/paper/loss_curve.png', format='png')
+    plt.savefig('~/paper/loss_curve.png', format='png')
     plt.show()
 # Path to the TensorBoard log file
-log_file_path1 = '/home/jerry/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/5/events.out.tfevents.1723921135.jerry.94076.0'
-log_file_path2 = '/home/jerry/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/6/events.out.tfevents.1723946286.jerry.112823.0'
-log_file_path3 = '/home/jerry/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/2/events.out.tfevents.1723583995.jerry.9022.0'
+log_file_path1 = '~/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/5/events.out.tfevents.1723921135.jerry.94076.0'
+log_file_path2 = '~/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/6/events.out.tfevents.1723946286.jerry.112823.0'
+log_file_path3 = '~/github/CTAE-semimask/segmentation/checkpoints/mit_b2/mask_ratio_0.25_0.5/2/events.out.tfevents.1723583995.jerry.9022.0'
 
 read_tensorboard_log(log_file_path1, log_file_path2, log_file_path3)

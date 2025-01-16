@@ -109,18 +109,11 @@ def crop3DTo2D(image_file, mask_file):
         padded_image = ct_array
         padded_mask = mask_array
 
-    # fig, (ax1, ax2) = plt.subplots(1, 2)
-    # ax1.imshow(padded_image[:, :, :, 15])
-    # ax2.imshow(padded_mask[:, :, 15], cmap='gray')
     plt.show()
     if H != 256 or W != 256:
         padded_image, padded_mask = crop_image(padded_image, padded_mask)
     else:
         ret = 1
-    # fig2, (ax1, ax2) = plt.subplots(1, 2)
-    # ax1.imshow(padded_image[:, :, :, 15])
-    # ax2.imshow(padded_mask[:, :, 15], cmap='gray')
-    # plt.show()
 
     padded_img = nibabel.Nifti1Image(padded_image, affine=np.eye(4))
     nibabel.save(padded_img, os.path.join(dst_path, image_name))
@@ -130,8 +123,8 @@ def crop3DTo2D(image_file, mask_file):
 
 
 if __name__ == '__main__':
-    src_path = '/home/jerry/datasets/TotalSegmentator/origin/val'
-    dst_path = '/home/jerry/datasets/TotalSegmentator/cropHWD/val'
+    src_path = '~/datasets/TotalSegmentator/origin/val'
+    dst_path = '~/jerry/datasets/TotalSegmentator/cropHWD/val'
 
     mask_list = glob.glob(f'{src_path}/**/*mask.nii.gz', recursive=True)
     file_list = []

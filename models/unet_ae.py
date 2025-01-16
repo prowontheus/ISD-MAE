@@ -1,7 +1,3 @@
-"""
-author: zhengj
-"""
-
 from typing import Optional, Union, List
 from segmentation_models_pytorch.encoders import get_encoder
 from segmentation_models_pytorch.base import (
@@ -256,38 +252,4 @@ class UnetAE(SegmentationModel):
             return recons, encoder_project_outputs
         
         return recons
-
-
-
-if __name__ == '__main__':
-    import copy
-    import torch
-    input = torch.rand(24, 3, 256, 256)  # batch_size, channels, w, h
-
-    project_heads = []
-    project_outdims =  [128, 256, 512]
-    for outdim in project_outdims:
-        project_heads.append(dict(
-            pooling='max',
-            dropout=None,
-            activation=None,
-            out_dims= outdim
-        ))
-    
-    model = UnetAE(encoder_name='mit_b2',classes=1, activation='sigmoid', aux_params= project_heads)
-    input = input.to('cuda')
-    model = model.to('cuda')
-    output, prject_embeds = model(input)
-    print(output.shape)
-
-    for project_embed in prject_embeds:
-        print(project_embed.shape)
-    
-    '''for i in range(len(decoders)):
-        print('decoders',i, decoders[i].shape)'''
-    '''recon, embeddings, logit_scale = model(input)
-    print(type(embeddings))
-    print(embeddings.shape)  # 输出(24,16384), 24:batch_size, 16384:向量维度
-    print(type(recon))
-    print(recon.shape)  # 输出(24,1,256,256)'''
 

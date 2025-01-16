@@ -45,8 +45,8 @@ def rgb_image_construction(images):
         sobel_x = np.stack(sobel_x, axis=-1)
         sobel_y = np.stack(sobel_y, axis=-1)
     else:
-        sobel_x = cv2.Sobel(lung_channel, -1, 1, 0, ksize=3)  # 在水平方向上计算梯度
-        sobel_y = cv2.Sobel(lung_channel, -1, 0, 1, ksize=3)  # 在垂直方向上计算梯度
+        sobel_x = cv2.Sobel(lung_channel, -1, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(lung_channel, -1, 0, 1, ksize=3)
     lung_edge = np.sqrt(sobel_x**2 + sobel_y**2)
 
     if len(medi_channel.shape) > 2:
@@ -58,8 +58,8 @@ def rgb_image_construction(images):
         sobel_x = np.stack(sobel_x, axis=-1)
         sobel_y = np.stack(sobel_y, axis=-1)
     else:
-        sobel_x = cv2.Sobel(medi_channel, -1, 1, 0, ksize=3)  # 在水平方向上计算梯度
-        sobel_y = cv2.Sobel(medi_channel, -1, 0, 1, ksize=3)  # 在垂直方向上计算梯度
+        sobel_x = cv2.Sobel(medi_channel, -1, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(medi_channel, -1, 0, 1, ksize=3)
     medi_edge = np.sqrt(sobel_x**2 + sobel_y**2)
 
     edge_channel = np.copy(medi_edge)

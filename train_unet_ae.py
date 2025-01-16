@@ -1,6 +1,3 @@
-'''
-author: changrj
-'''
 import os
 
 from models.unet_ae import UnetAE, UnetAE3D
@@ -28,7 +25,7 @@ def get_args():
                         help='the masking type, 0:patch, 1:intensity')
     parser.add_argument('--spatial_mask_ratio', '-spatial_mask_ratio', type=float, default=0,
                         help='the mask ratio of image for contrastive')
-    parser.add_argument('--shape', '-shape', type=str, default='3D', help='2D or 3D image shape')
+    parser.add_argument('--shape', '-shape', type=str, default='2D', help='2D or 3D image shape')
     parser.add_argument('--load', '-load', type=str, default='weights_best.h5', help='Load model from a .h5 file')
     parser.add_argument('--save_dir', '-save_dir', type=str, default='resnet_unet', help='the path to save weights')
     parser.add_argument('--epochs', '-epochs', type=int, default=120, help='Epochs for training')
@@ -45,40 +42,6 @@ if __name__ == '__main__':
     args = get_args()
 
     user_home_dir = osp.expanduser("~")
-    if args.shape == '2D':
-        if args.dataname == 'GRAM':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/image_text_clinical/gram_2D'
-        elif args.dataname == 'COVID19_CT':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/COVID-19 CT scans/2D'
-        elif args.dataname == 'COVID19_LESION':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/COVID-19 CT scan lesion segmentation'
-        elif args.dataname == 'COVID19_2D':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/image_text_clinical/covid19/2D'
-        elif args.dataname == 'Task06_Lung':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Task06_Lung/Task06_Lung2D'
-        elif args.dataname == 'TotalSegmentator':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/TotalSegmentator2D'
-        elif args.dataname == 'Lung_nodule_seg':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Lung nodule segmentation (Decathelon Data)'
-        elif args.dataname == 'Lung_CT_nodule':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Lung CT nodule'
-        elif args.dataname == 'Chest_CT':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Chest CT Segmentation'
-        elif args.dataname == 'Lungs_CT_Scan':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Lungs CT-Scan'
-        elif args.dataname == 'LIDC_IDRI':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/LIDC-IDRI-slices'
-    elif args.shape == '3D':
-        if args.dataname == 'GRAM':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/image_text_clinical/gram_3D'
-        elif args.dataname == 'COVID19_CT':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/COVID-19 CT scans/3D/cropD'
-        elif args.dataname == 'COVID19_3D':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/image_text_clinical/covid19_3D/cropD'
-        elif args.dataname == 'Task06_Lung':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/Task06_Lung/3D/cropHWD'
-        elif args.dataname == 'TotalSegmentator':
-            cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/TotalSegmentator/cropHWD'
     device_count = torch.cuda.device_count()
 
     cfg.INPUT_SHAPE = (args.input_size, args.input_size)
@@ -89,7 +52,7 @@ if __name__ == '__main__':
     # transforms = transforms.Compose([transforms.Resize((cfg.INPUT_SHAPE)), transforms.ToTensor()])
     use_cuda = torch.cuda.is_available()
     device = torch.device('cuda' if use_cuda else 'cpu')
-    # 读取train数据集
+    # load trainging dataset
     if args.shape == '3D':
         train_dataset = MyDataset3D(images_dirs=cfg.TRAIN_DATA_FILE, transform=transforms)
     else:
@@ -97,7 +60,6 @@ if __name__ == '__main__':
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.BATCH_SIZE, num_workers=0,
                                                persistent_workers=False)
 
-    # 定义并初始化模型
     project_heads = []
     project_outdims = [128]
     for outdim in project_outdims:
@@ -128,7 +90,7 @@ if __name__ == '__main__':
     cfg.LR = args.lr
     cfg.SHAPE = args.shape
     cfg.EPOCHS = args.epochs
-    # 初始化训练器
+    # initialization
 
     if args.tensorboard == True:
         log_dir = f'./checkpoints/{args.encoder}/mask_ratio_{cfg.INTENSITY_MASK_RATIO}_{cfg.SPATIALA_MASK_RATIO}'

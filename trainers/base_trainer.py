@@ -27,12 +27,12 @@ class BaseTrainer(ABC):
         print('checking checkpoint path ...')
         if not os.path.exists(self.cfg.CHECKPOINTS_ROOT):
             print('creating checkpoint root:', self.cfg.CHECKPOINTS_ROOT)
-            os.mkdir(self.cfg.CHECKPOINTS_ROOT)
+            os.makedirs(self.cfg.CHECKPOINTS_ROOT)
             
         model_path = os.path.join(self.cfg.CHECKPOINTS_ROOT, save_model_dir, f'mask_ratio_{self.cfg.INTENSITY_MASK_RATIO}_{self.cfg.SPATIALA_MASK_RATIO}')
         if not os.path.exists(model_path):
             print('creating path for saving weights:', model_path)
-            os.mkdir(model_path)
+            os.makedirs(model_path)
             
         self.save_path = model_path
         

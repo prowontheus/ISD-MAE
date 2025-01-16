@@ -1,6 +1,3 @@
-'''
-author: changrj
-'''
 import os
 import time
 import torch
@@ -24,16 +21,13 @@ class Trainer(BaseTrainer):
         
     def start_train(self, train_dataset, save_model_dir, writer, pretrained_file=None):
         '''
-        加载数据集和模型
+        load datasets and model
         '''
         self._print_config()
         self._prepare_path(save_model_dir)
+
         
-        # if not (pretrained_file is None):
-        #     self._load_pretrained(pretrained_file, self.device)
-        
-        print('\n----------------------------  start model training -----------------------------') 
-        # 配置优化器、学习率调度器、混合精度训练功能
+        print('\n----------------------------  start model training -----------------------------')
         optimizer = optim.AdamW(self.model.parameters(), lr=self.cfg.LR)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = self.cfg.DECAY_STEPS, gamma=self.cfg.DECAY_RATE)
         grad_scaler = torch.cuda.amp.GradScaler(enabled=self.cfg.AMP)
@@ -46,11 +40,10 @@ class Trainer(BaseTrainer):
         min_loss = 10000.0
         for epoch in range(1, self.cfg.EPOCHS+1):
             print ('\n################################### epoch:'+str(epoch)+'/'+str(self.cfg.EPOCHS))
-            # 训练模型
             self.model.train()
             
             t1 = time.time()
-            # 计算3通道img的损失、1通道img的损失
+
             intensity_recon_loss, spatial_recon_loss, consistent_loss = self.__train_epoch(train_dataset, 
                                                             optimizer, 
                                                             grad_scaler, 
@@ -58,7 +51,7 @@ class Trainer(BaseTrainer):
             t2 = time.time()
             
             current_lr = optimizer.state_dict()['param_groups'][0]['lr']
-            # 输出每个epoch后的loss等
+
             print ('\n intensity recon loss: %.3f; spatial recon loss: %.3f; consistent loss: %.3f; Lr: %.6f; Used time (s): %.4f' %
                     (intensity_recon_loss, spatial_recon_loss, consistent_loss, current_lr, t2-t1))
             
@@ -67,13 +60,11 @@ class Trainer(BaseTrainer):
             str_intensity_recon_loss = "%f"%intensity_recon_loss
             str_spatial_recon_loss = '%f'%spatial_recon_loss
             str_consistent_loss = '%f'%consistent_loss
-          
-            #将数据保存在一维列表
+
             list = [current_time, step, str_intensity_recon_loss, str_spatial_recon_loss, str_consistent_loss]
             df_summary = pd.DataFrame([list])
             df_summary.to_csv(os.path.join(self.save_path, "training_summary.csv"),mode='a',header=False,index=False)
 
-            # 每20个epochs保存best_weights.pth
             mean_loss = (intensity_recon_loss+spatial_recon_loss)/2.0
             print(f'mean_loss={mean_loss}')
             if min_loss > mean_loss:
@@ -86,8 +77,7 @@ class Trainer(BaseTrainer):
             self._delete_old_weights(self.cfg.MAX_KEEPS_CHECKPOINTS)
 
         print('\n---------------------------- model training completed ---------------------------')
-    
-    # 训练细节
+
     def __train_epoch(self, train_dataset, optimizer, grad_scaler, scheduler, writer, epoch):
         losses = {'intensity_recon_loss':[], 'spatial_recon_loss':[], 'consistent_loss':[]}
         for step, (images1, images2) in enumerate(train_dataset):
@@ -104,10 +94,6 @@ class Trainer(BaseTrainer):
                 intensity_masked_ims = self.random_mask_images_by_intensity(org_images2.clone(), self.cfg.INTENSITY_MASK_SIZE, self.cfg.INTENSITY_MASK_RATIO)
                 intensity_recon_ims, intensity_embeddings = self.model(intensity_masked_ims)
 
-                # fig, (ax1, ax2) = plt.subplots(1, 2)
-                # ax1.imshow(np.moveaxis(spatial_recon_ims[0].float().detach().cpu().numpy(), 0, 2))
-                # ax2.imshow(np.moveaxis(intensity_masked_ims[0].float().detach().cpu().numpy(), 0, 2))
-                # plt.show()
 
             spatial_recon_loss = self.__calc_recon_loss(spatial_recon_ims, org_images1)
             intensity_recon_loss = self.__calc_recon_loss(intensity_recon_ims, org_images2)
@@ -120,7 +106,7 @@ class Trainer(BaseTrainer):
                 writer.add_scalar('spatial_recon_loss', spatial_recon_loss.item(), (epoch-1) * len(train_dataset) + step)
                 writer.add_scalar('consisitent_loss', consisitent_loss.item(), (epoch-1) * len(train_dataset) + step)
                 writer.add_scalar('loss', intensity_recon_loss.item()+spatial_recon_loss.item()+consisitent_loss.item(), (epoch-1) * len(train_dataset) + step)
-            # print(f'spatial_recon_loss={spatial_recon_loss}, intensity_recon_loss={intensity_recon_loss}, consisitent_loss={consisitent_loss}')
+
             optimizer.zero_grad(set_to_none=True)
             grad_scaler.scale(intensity_recon_loss+spatial_recon_loss+consisitent_loss).backward()
             grad_scaler.step(optimizer)
@@ -215,11 +201,6 @@ class Trainer(BaseTrainer):
             # Also reshape mask back to original image shape for loss calculation
             mask_expanded = mask_expanded.permute(0, 3, 1, 4, 2, 5).contiguous()
             mask_expanded = mask_expanded.view(N, C, H, W)
-            # for i in range(0, masked_images.shape[0], 1):
-            #     fig, (ax1, ax2) = plt.subplots(1, 2)
-            #     ax1.imshow(np.moveaxis(images[i].detach().cpu().numpy(),0,2))
-            #     ax2.imshow(np.moveaxis(masked_images[i].detach().cpu().numpy(),0,2))
-            #     plt.show()
 
             return masked_images, mask_expanded[:,0,:,:]
         elif self.cfg.SHAPE == '3D':
@@ -245,17 +226,6 @@ class Trainer(BaseTrainer):
             # Also reshape mask back to original image shape for loss calculation
             mask_expanded = mask_expanded.permute(0, 4, 1, 5, 2, 6, 3, 7).contiguous()
             mask_expanded = mask_expanded.view(N, C, H, W, D)
-            # for i in range(0, masked_images.shape[4], 8):
-            #     fig, ax = plt.subplots(2, 4)
-            #     ax[0,0].imshow(images[0,0,:,:,i].detach().cpu().numpy())
-            #     ax[0,1].imshow(images[0,1,:,:,i].detach().cpu().numpy())
-            #     ax[0,2].imshow(images[0,2,:,:,i].detach().cpu().numpy())
-            #     ax[0,3].imshow(np.moveaxis(images[0,:,:,:,i].detach().cpu().numpy(), 0, 2))
-            #     ax[1,0].imshow(masked_images[0,0,:,:,i].detach().cpu().numpy())
-            #     ax[1,1].imshow(masked_images[0,1,:,:,i].detach().cpu().numpy())
-            #     ax[1,2].imshow(masked_images[0,2,:,:,i].detach().cpu().numpy())
-            #     ax[1,3].imshow(np.moveaxis(masked_images[0,:,:,:,i].detach().cpu().numpy(), 0, 2))
-            #     plt.show()
 
             return masked_images, mask_expanded[:,0,:,:]
     
@@ -294,14 +264,6 @@ class Trainer(BaseTrainer):
                     mask_high = mask_ranges[mask_range_ind][1]
 
                     im_to_mask[(im_gray >= mask_low) & (im_gray < mask_high)] = torch.tensor([0, 0, 0], dtype=torch.float32).to(self.device)
-                    #im_to_mask[:,:,2] = b#edge保持不变
-                # fig, axes = plt.subplots(1, 2)
-                # axes[0].imshow(image.cpu().numpy())
-                # axes[0].set_title('image')
-                # axes[1].imshow(im_to_mask.cpu().numpy())
-                # axes[1].set_title('im_to_mask')
-                # plt.tight_layout()
-                # plt.show()
                 ims_masked[i, ...] = im_to_mask
 
             # 将输出的ims_masked从形状(N, H, W, 3)转换回(N, 3, H, W)
@@ -330,17 +292,6 @@ class Trainer(BaseTrainer):
                     mask_high = mask_ranges[mask_range_ind][1]
 
                     im_to_mask[(im_gray >= mask_low) & (im_gray < mask_high)] = torch.tensor([0, 0, 0], dtype=torch.float32).to(self.device)
-                    # im_to_mask[:,:,2] = b#edge保持不变
-                # image_numpy = image.cpu().numpy()
-                # im_to_mask_numpy = im_to_mask.cpu().numpy()
-                # for i in range(image.shape[2]):
-                #     fig, axes = plt.subplots(1, 2)
-                #     axes[0].imshow(image_numpy[:,:,i,:])
-                #     axes[0].set_title('image')
-                #     axes[1].imshow(im_to_mask_numpy[:,:,i,:])
-                #     axes[1].set_title('im_to_mask')
-                #     plt.tight_layout()
-                #     plt.show()
                 ims_masked[i, ...] = im_to_mask
 
             # 将输出的ims_masked从形状(N, H, W, 3)转换回(N, 3, H, W)
@@ -356,6 +307,3 @@ class Trainer(BaseTrainer):
 
         cropped_tensor = tensor[:, :, top:top+crop_h, left:left+crop_w]
         return cropped_tensor
-
-
-        

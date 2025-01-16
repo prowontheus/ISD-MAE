@@ -4,13 +4,10 @@ cfg = edict()
 
 # data settings
 user_home_dir = os.path.expanduser("~")
-cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/image_text_clinical/gram_2D'
-# cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/CT Scans for COVID-19 Classification/Original CT Scans'
-cfg.EVAL_DATA_FILE = ''
-cfg.TEST_DATA_FILE = f'{user_home_dir}/datasets/COVID-19_Radiography_Dataset/COVID'
+cfg.TRAIN_DATA_FILE = f'{user_home_dir}/datasets/TotalSegmentator2D'
 
 # model settings
-cfg.BATCH_SIZE = 24
+cfg.BATCH_SIZE = 16
 cfg.INPUT_SHAPE = [256, 256]
 cfg.SPATIALA_MASK_RATIO = 0
 cfg.SPATIALA_MASK_SIZE = 8
